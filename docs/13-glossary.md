@@ -1,0 +1,21 @@
+# Glossary
+
+- **Agent:** A system using model-driven decisions and tools to pursue a task.
+- **Workflow:** Defined graph of bounded operations and transitions.
+- **Run:** One workflow execution for a specific input.
+- **Node:** Bounded unit of workflow work.
+- **Lifecycle status:** Overall state such as `RUNNING` or `PAUSED`.
+- **Checkpoint:** Versioned snapshot for restoring workflow state.
+- **Event:** Record of a significant execution fact.
+- **Trajectory:** Ordered sequence of states, node executions, tool calls, and decisions.
+- **Tool registry:** Explicit list of capabilities and contracts.
+- **Policy gate:** Code-enforced authorization/risk check before a tool runs.
+- **HITL:** Human-in-the-loop approval or decision.
+- **Idempotency key:** Identifier used to safely recognize duplicate requests.
+- **Unknown outcome:** An external action may have succeeded, but durable confirmation is missing.
+- **Failure Capsule:** Versioned, redacted evidence bundle for a failed run.
+- **Mock replay:** Re-run workflow logic using fixed/recorded outputs without external side effects.
+- **Golden trajectory:** Expected workflow behavior used for regression testing.
+- **RPO:** Recovery Point Objective; acceptable data loss measured in time.
+- **RTO:** Recovery Time Objective; acceptable recovery time.
+- **ADR:** Architecture Decision Record.
