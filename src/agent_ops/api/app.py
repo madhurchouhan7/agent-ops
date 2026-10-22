@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import os
+import time
 from pathlib import Path
+from uuid import uuid4
 
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -39,6 +41,19 @@ def create_app(
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # Telemetry and distributed tracing middleware
+    @app.middleware("http")
+    async def add_observability_headers(request: Request, call_next: Any) -> Response:
+        request_id = request.headers.get("X-Request-ID") or uuid4().hex
+        start_time = time.perf_counter()
+        response: Response = await call_next(request)
+        elapsed_ms = (time.perf_counter() - start_time) * 1000.0
+        response.headers["X-Request-ID"] = request_id
+        response.headers["X-Response-Time"] = f"{elapsed_ms:.2f}ms"
+        return response
+
+    app.state.start_time = time.time()
 
     if session_factory is None:
         db_url = database_url or os.environ.get(
@@ -82,6 +97,9 @@ def create_app(
     static_dir = Path(__file__).parent / "static"
     if static_dir.exists():
         app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+        assets_dir = static_dir / "assets"
+        if assets_dir.exists():
+            app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
 
     @app.get("/", include_in_schema=False, response_model=None)
     @app.get("/console", include_in_schema=False, response_model=None)

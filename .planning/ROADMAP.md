@@ -11,6 +11,7 @@ AgentOps is built across focused phases to deliver a reliable, observable develo
 - [x] **Phase 3: Tool Registry, Policy Gate & Approvals** - Allow-listed tools, code-level policy enforcement, and human approval pause/resume.
 - [x] **Phase 4: Diagnostics, Evaluation & Support Demo** - Failure capsule export, offline mock replay, golden trajectory suite, and end-to-end support demo.
 - [x] **Phase 5: Production Local Server & Web Console** - Production-ready FastAPI local server with disk persistence, demo runner routes, and an interactive frontend dashboard for browser testing.
+- [x] **Phase 6: Modern Frontend Redesign and Vertex Landing Page** - High-fidelity Vertex-inspired monochrome landing page with animations and modern React control console.
 
 ## Phase Details
 
@@ -67,10 +68,25 @@ Plans:
 Plans:
 - [x] 05-01: Production local server, demo orchestration routes, and interactive frontend console
 
+### Phase 6: Modern Frontend Redesign and Vertex Landing Page
+**Goal:** As a developer evaluating and operating stateful AI agents, I want to experience a sleek Vertex-inspired monochrome landing page and use a modern React console with smooth animations, so that I can comprehensively evaluate AgentOps capabilities and control live agent workflows with zero friction.
+**Mode:** mvp
+**Depends on:** Phase 5
+**Requirements**: UI-VERTEX-01, UI-CONSOLE-01, UI-INTEG-01
+**Success Criteria** (what must be TRUE):
+  1. A standalone or integrated React app is built with Vite, Tailwind CSS, and Framer Motion adhering strictly to a black-and-white, minimal, high-tech aesthetic inspired by `vertex-one-lovat.vercel.app`.
+  2. The landing page matches the exact structural layout of Vertex: sleek navbar, dynamic agent run switcher hero, corner cross-grid markers, partner/tech marquee, interactive bento feature cards, scale statistics counters, toggleable pricing matrix, interactive FAQ accordion, and concentric circular glow CTA.
+  3. The interactive web console is cleanly redesigned in the same monochrome visual language, allowing users to start the support triage demo, inspect live monotonic event timelines, approve/reject protected actions, view failure capsules, and trigger evaluations.
+  4. The frontend compiles seamlessly to `src/agent_ops/api/static` so FastAPI serves both the landing page (`/`) and console (`/console` or live view toggle), and has full hot-reload development support (`npm run dev`).
+**Plans:** 1 plan
+
+Plans:
+- [x] 06-01: Modern React frontend with Vertex-inspired landing page and black & white control console
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -79,3 +95,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 3. Tool Registry, Policy Gate & Approvals | 1/1 | Complete | 2026-10-22 |
 | 4. Diagnostics, Evaluation & Support Demo | 1/1 | Complete | 2026-10-22 |
 | 5. Production Local Server & Web Console | 1/1 | Complete | 2026-10-22 |
+| 6. Modern Frontend Redesign and Vertex Landing Page | 1/1 | Complete | 2026-10-22 |

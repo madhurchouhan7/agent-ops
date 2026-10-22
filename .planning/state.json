@@ -1,0 +1,38 @@
+{
+  "contract": "1.0.0",
+  "flavor": "core",
+  "milestone": null,
+  "phases": [
+    {
+      "number": "1",
+      "name": "Domain Models & State Machine Runtime",
+      "status": "complete"
+    },
+    {
+      "number": "2",
+      "name": "Persisted Timeline, Checkpoints & Recovery",
+      "status": "complete"
+    },
+    {
+      "number": "3",
+      "name": "Tool Registry, Policy Gate & Approvals",
+      "status": "complete"
+    },
+    {
+      "number": "4",
+      "name": "Diagnostics, Evaluation & Support Demo",
+      "status": "complete"
+    },
+    {
+      "number": "5",
+      "name": "Production Local Server & Web Console",
+      "status": "complete"
+    }
+  ],
+  "next": {
+    "command": "/gsd-new-milestone",
+    "label": "Start a new milestone",
+    "reason": "All phases complete — start a new milestone"
+  },
+  "updated_at": "2026-10-22T05:46:49.662Z"
+}

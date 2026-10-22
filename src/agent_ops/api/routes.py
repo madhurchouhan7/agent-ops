@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Generator
 from datetime import UTC, datetime
+import time
 from typing import Annotated, Any
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
-from sqlalchemy import select
+from fastapi.responses import StreamingResponse
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from agent_ops.api.schemas import (
@@ -25,18 +28,20 @@ from agent_ops.domain.errors import AgentOpsError
 from agent_ops.domain.models import Run, RunStatus
 from agent_ops.evaluations import EvaluationResult, TrajectoryEvaluator
 from agent_ops.runtime.engine import WorkflowRuntime
+from agent_ops.services import (
+    RunService,
+    global_event_bus,
+    global_idempotency_manager,
+)
 from agent_ops.storage import (
     ApprovalService,
     EventRepository,
 )
-from agent_ops.storage.models import ApprovalModel, RunModel
+from agent_ops.storage.models import ApprovalModel, RunEventModel, RunModel
 from agent_ops.tools import PolicyGate, ToolRegistry
 from agent_ops.workflows import SupportTriageWorkflow
 
 router = APIRouter(prefix="/v1")
-
-# In-memory idempotency cache: idempotency_key -> run_id
-IDEMPOTENCY_STORE: dict[str, str] = {}
 
 
 def get_db_session(request: Request) -> Generator[Session, None, None]:
@@ -113,38 +118,24 @@ def create_run(
     req: CreateRunRequest,
     session: DbSession,
 ) -> RunResponse:
-    """Create a new workflow run with optional idempotency key support."""
-    if req.idempotency_key and req.idempotency_key in IDEMPOTENCY_STORE:
-        existing_run_id = IDEMPOTENCY_STORE[req.idempotency_key]
-        existing = session.get(RunModel, existing_run_id)
-        if existing:
-            return serialize_run(existing)
+    """Create a new workflow run with thread-safe TTL idempotency key support."""
+    if req.idempotency_key:
+        record = global_idempotency_manager.get(req.idempotency_key)
+        if record:
+            existing = session.get(RunModel, record.run_id)
+            if existing:
+                return serialize_run(existing)
 
-    run_id = f"run_{uuid4().hex[:12]}"
-    now = datetime.now(UTC)
-    run_model = RunModel(
-        id=run_id,
-        workflow_id=req.workflow_id,
-        workflow_version="1.0",
-        status=RunStatus.CREATED.value,
-        current_node=None,
-        step_count=0,
-        state_json=req.input,
-        budget_json={"max_steps": 25, "timeout_seconds": 60.0},
-        created_at=now,
-        updated_at=now,
-    )
-    session.add(run_model)
-    EventRepository.append_event(
+    run_model = RunService.create_run(
         session=session,
-        run_id=run_id,
-        event_type="run.created",
-        payload={"input": req.input},
+        workflow_id=req.workflow_id,
+        input_data=req.input,
     )
-    session.commit()
 
     if req.idempotency_key:
-        IDEMPOTENCY_STORE[req.idempotency_key] = run_id
+        global_idempotency_manager.register(
+            req.idempotency_key, run_id=run_model.id, status="COMPLETED"
+        )
 
     return serialize_run(run_model)
 
@@ -231,28 +222,13 @@ def pause_run(
     session: DbSession,
 ) -> RunResponse:
     """Pause an active run at a safe node boundary."""
-    run_model = session.get(RunModel, run_id)
-    if not run_model:
-        raise HTTPException(status_code=404, detail="RUN_NOT_FOUND")
-
-    runtime = WorkflowRuntime()
-    domain_run = Run(
-        id=run_model.id,
-        workflow_id=run_model.workflow_id,
-        status=RunStatus(run_model.status),
-        state=run_model.state_json,
-    )
-    runtime.pause(domain_run)
-
-    run_model.status = domain_run.status.value
-    run_model.updated_at = datetime.now(UTC)
-    EventRepository.append_event(
-        session=session,
-        run_id=run_id,
-        event_type="run.paused",
-    )
-    session.commit()
-    return serialize_run(run_model)
+    try:
+        run_model = RunService.pause_run(session, run_id)
+        return serialize_run(run_model)
+    except AgentOpsError as exc:
+        if exc.error_code == "NOT_FOUND":
+            raise HTTPException(status_code=404, detail="RUN_NOT_FOUND") from exc
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post("/runs/{run_id}/resume", response_model=RunResponse)
@@ -261,28 +237,13 @@ def resume_run(
     session: DbSession,
 ) -> RunResponse:
     """Resume execution of a paused run."""
-    run_model = session.get(RunModel, run_id)
-    if not run_model:
-        raise HTTPException(status_code=404, detail="RUN_NOT_FOUND")
-
-    runtime = WorkflowRuntime()
-    domain_run = Run(
-        id=run_model.id,
-        workflow_id=run_model.workflow_id,
-        status=RunStatus(run_model.status),
-        state=run_model.state_json,
-    )
-    runtime.resume(domain_run)
-
-    run_model.status = domain_run.status.value
-    run_model.updated_at = datetime.now(UTC)
-    EventRepository.append_event(
-        session=session,
-        run_id=run_id,
-        event_type="run.resumed",
-    )
-    session.commit()
-    return serialize_run(run_model)
+    try:
+        run_model = RunService.resume_run(session, run_id)
+        return serialize_run(run_model)
+    except AgentOpsError as exc:
+        if exc.error_code == "NOT_FOUND":
+            raise HTTPException(status_code=404, detail="RUN_NOT_FOUND") from exc
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post("/runs/{run_id}/cancel", response_model=RunResponse)
@@ -291,28 +252,13 @@ def cancel_run(
     session: DbSession,
 ) -> RunResponse:
     """Cancel a running or paused run."""
-    run_model = session.get(RunModel, run_id)
-    if not run_model:
-        raise HTTPException(status_code=404, detail="RUN_NOT_FOUND")
-
-    runtime = WorkflowRuntime()
-    domain_run = Run(
-        id=run_model.id,
-        workflow_id=run_model.workflow_id,
-        status=RunStatus(run_model.status),
-        state=run_model.state_json,
-    )
-    runtime.cancel(domain_run)
-
-    run_model.status = domain_run.status.value
-    run_model.updated_at = datetime.now(UTC)
-    EventRepository.append_event(
-        session=session,
-        run_id=run_id,
-        event_type="run.cancelled",
-    )
-    session.commit()
-    return serialize_run(run_model)
+    try:
+        run_model = RunService.cancel_run(session, run_id)
+        return serialize_run(run_model)
+    except AgentOpsError as exc:
+        if exc.error_code == "NOT_FOUND":
+            raise HTTPException(status_code=404, detail="RUN_NOT_FOUND") from exc
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 # ---------------------------------------------------------------------------
@@ -440,28 +386,12 @@ def start_triage_demo(
     session: DbSession,
 ) -> dict[str, Any]:
     """Initialize and advance the synthetic support triage demo to approval gate."""
-    registry = ToolRegistry()
-    SupportTriageWorkflow.register_tools(registry)
-    policy_gate = PolicyGate()
-    runtime = WorkflowRuntime()
-
-    run = SupportTriageWorkflow.create_run(
+    run_model, approval = RunService.start_demo_triage(
         session=session,
         ticket_id=req.ticket_id,
         message=req.message,
         customer_id=req.customer_id,
     )
-
-    approval = SupportTriageWorkflow.execute_until_approval(
-        session=session,
-        run=run,
-        runtime=runtime,
-        registry=registry,
-        policy_gate=policy_gate,
-    )
-
-    run_model = session.get(RunModel, run.id)
-    assert run_model is not None
 
     return {
         "run": serialize_run(run_model),
@@ -476,33 +406,115 @@ def resume_triage_demo(
     session: DbSession,
 ) -> dict[str, Any]:
     """Resume execution of a paused triage demo run following approval or rejection."""
-    run_model = session.get(RunModel, run_id)
-    if not run_model:
-        raise HTTPException(status_code=404, detail="RUN_NOT_FOUND")
-
-    domain_run = Run(
-        id=run_model.id,
-        workflow_id=run_model.workflow_id,
-        status=RunStatus(run_model.status),
-        state=run_model.state_json,
-    )
-
-    registry = ToolRegistry()
-    SupportTriageWorkflow.register_tools(registry)
-    runtime = WorkflowRuntime()
-
-    result = SupportTriageWorkflow.resume_after_approval(
-        session=session,
-        run=domain_run,
-        runtime=runtime,
-        registry=registry,
-    )
-
-    refreshed_model = session.get(RunModel, run_id)
-    assert refreshed_model is not None
+    try:
+        refreshed_model, result_data = RunService.resume_demo_triage(
+            session=session,
+            run_id=run_id,
+        )
+    except AgentOpsError as exc:
+        if exc.error_code == "NOT_FOUND":
+            raise HTTPException(status_code=404, detail="RUN_NOT_FOUND") from exc
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     return {
         "run": serialize_run(refreshed_model),
-        "result": result.data if result else None,
-        "executed": result is not None,
+        "result": result_data,
+        "executed": result_data is not None,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Real-Time Telemetry & SSE Streaming
+# ---------------------------------------------------------------------------
+
+
+@router.get("/runs/{run_id}/stream", response_class=StreamingResponse)
+async def stream_run_events(run_id: str) -> StreamingResponse:
+    """Stream live execution events for a specific run in real time via SSE."""
+    return StreamingResponse(
+        global_event_bus.sse_stream(run_id=run_id),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+@router.get("/events/stream", response_class=StreamingResponse)
+async def stream_all_events() -> StreamingResponse:
+    """Stream all global platform events in real time via Server-Sent Events."""
+    return StreamingResponse(
+        global_event_bus.sse_stream(run_id=None),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+# ---------------------------------------------------------------------------
+# System Observability & Health Check Routes
+# ---------------------------------------------------------------------------
+
+
+@router.get("/health")
+def health_check(
+    request: Request,
+    session: DbSession,
+) -> dict[str, Any]:
+    """Comprehensive readiness and system health check."""
+    db_ok = True
+    try:
+        session.execute(select(1)).scalar()
+    except Exception:
+        db_ok = False
+
+    uptime_seconds = (
+        time.time() - request.app.state.start_time
+        if hasattr(request.app.state, "start_time")
+        else 0.0
+    )
+
+    return {
+        "status": "healthy" if db_ok else "unhealthy",
+        "service": "agent-ops-control-plane",
+        "version": "0.1.0",
+        "database": "connected" if db_ok else "disconnected",
+        "uptime_seconds": round(uptime_seconds, 2),
+        "timestamp": datetime.now(UTC).isoformat(),
+    }
+
+
+@router.get("/metrics")
+def system_metrics(session: DbSession) -> dict[str, Any]:
+    """Operational metrics: runs, events, approvals, and queue statistics."""
+    total_runs = session.scalar(select(func.count(RunModel.id))) or 0
+    active_runs = (
+        session.scalar(
+            select(func.count(RunModel.id)).where(
+                RunModel.status.in_([RunStatus.RUNNING.value, RunStatus.PAUSED.value])
+            )
+        )
+        or 0
+    )
+    total_events = session.scalar(select(func.count(RunEventModel.id))) or 0
+    pending_approvals = (
+        session.scalar(
+            select(func.count(ApprovalModel.id)).where(
+                ApprovalModel.status == "PENDING"
+            )
+        )
+        or 0
+    )
+
+    return {
+        "total_runs": total_runs,
+        "active_runs": active_runs,
+        "total_events": total_events,
+        "pending_approvals": pending_approvals,
+        "timestamp": datetime.now(UTC).isoformat(),
     }

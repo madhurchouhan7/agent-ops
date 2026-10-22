@@ -35,6 +35,11 @@
 - [x] **DEMO-01**: End-to-end runnable support triage workflow: ticket submitted -> classified -> ticket looked up -> reply drafted -> paused for approval -> simulated reply sent -> completed.
 - [x] **API-01**: FastAPI control endpoints for runs, events, checkpoints, approvals, and failure capsules with idempotent operations.
 
+### Modern Frontend & Landing Page (Phase 6)
+- [x] **UI-VERTEX-01**: High-fidelity Vertex-style monochrome landing page featuring dynamic hero agent run cards, cross-grid corner marks, partner marquee, interactive bento feature cards, metrics counters, side-by-side pricing matrix, collapsible FAQ accordion, and concentric glow CTA.
+- [x] **UI-CONSOLE-01**: Sleek black & white interactive React console with live runs, step budgets, monotonic event timeline, policy gate approvals, failure capsules, and evaluation triggers.
+- [x] **UI-INTEG-01**: Modern React + Vite + Tailwind CSS + Framer Motion setup with rich animations, seamless proxying to FastAPI backend, and production static build.
+
 ## v2 Requirements
 - **V2-01**: General-purpose visual workflow builder in Next.js console.
 - **V2-02**: Distributed durable execution with Temporal or multi-worker queues.
@@ -71,3 +76,6 @@
 | DIAG-03 | Phase 4 | Complete |
 | DEMO-01 | Phase 4 | Complete |
 | API-01 | Phase 4 | Complete |
+| UI-VERTEX-01 | Phase 6 | Complete |
+| UI-CONSOLE-01 | Phase 6 | Complete |
+| UI-INTEG-01 | Phase 6 | Complete |

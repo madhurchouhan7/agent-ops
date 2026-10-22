@@ -55,3 +55,5 @@ temp/
 # OS-generated files
 .DS_Store
 Thumbs.db
+
+frontend/node_modules/
