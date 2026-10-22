@@ -30,24 +30,28 @@ def print_banner(host: str, port: int) -> None:
 
 def main() -> None:
     """Run the AgentOps server CLI."""
+    default_host = os.environ.get("HOST", "127.0.0.1")
+    default_port = int(os.environ.get("PORT", "8000"))
+    default_db = os.environ.get("DATABASE_URL")
+
     parser = argparse.ArgumentParser(
         description="AgentOps Control Plane Server",
     )
     parser.add_argument(
         "--host",
-        default="127.0.0.1",
-        help="Bind socket host (default: 127.0.0.1)",
+        default=default_host,
+        help=f"Bind socket host (default: {default_host})",
     )
     parser.add_argument(
         "--port",
         type=int,
-        default=8000,
-        help="Bind socket port (default: 8000)",
+        default=default_port,
+        help=f"Bind socket port (default: {default_port})",
     )
     parser.add_argument(
         "--db",
-        default=None,
-        help="Database connection URL (defaults to sqlite:///agent_ops.db)",
+        default=default_db,
+        help="Database connection URL (defaults to DATABASE_URL or sqlite:///agent_ops.db)",
     )
     parser.add_argument(
         "--reload",

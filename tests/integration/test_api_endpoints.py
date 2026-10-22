@@ -256,3 +256,15 @@ def test_disk_sqlite_connection_teardown(tmp_path: pytest.TempPathFactory) -> No
             assert r1.status_code == 200
             r2 = client.get(f"/v1/approvals?run_id={run_id}")
             assert r2.status_code == 200
+
+
+def test_root_and_v1_health_endpoints(api_client: TestClient) -> None:
+    """Verify health endpoints at both /health and /v1/health."""
+    r_root = api_client.get("/health")
+    assert r_root.status_code == 200
+    assert r_root.json()["status"] == "healthy"
+
+    r_v1 = api_client.get("/v1/health")
+    assert r_v1.status_code == 200
+    assert r_v1.json()["status"] == "healthy"
+    assert "version" in r_v1.json()

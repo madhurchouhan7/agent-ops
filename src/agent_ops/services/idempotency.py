@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import threading
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-import threading
 from typing import Any
 
 
@@ -31,7 +31,9 @@ class IdempotencyManager:
             self._purge_expired()
             return self._store.get(key)
 
-    def register(self, key: str, run_id: str, status: str = "IN_PROGRESS") -> IdempotencyRecord:
+    def register(
+        self, key: str, run_id: str, status: str = "IN_PROGRESS"
+    ) -> IdempotencyRecord:
         """Register a new key with initial status."""
         with self._lock:
             self._purge_expired()
@@ -44,7 +46,9 @@ class IdempotencyManager:
             self._store[key] = record
             return record
 
-    def complete(self, key: str, response_payload: dict[str, Any] | None = None) -> None:
+    def complete(
+        self, key: str, response_payload: dict[str, Any] | None = None
+    ) -> None:
         """Mark an idempotency key as completed with optional cached payload."""
         with self._lock:
             if key in self._store:

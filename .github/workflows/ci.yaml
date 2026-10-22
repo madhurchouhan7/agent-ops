@@ -1,4 +1,3 @@
-
 name: AgentOps CI
 
 on:
@@ -41,4 +40,7 @@ jobs:
         run: uv run --locked mypy
 
       - name: Run tests
-        run: uv run --locked pytest --cov=agentops --cov-report=term-missing
+        run: uv run --locked pytest --cov=agent_ops --cov-report=term-missing
+
+      - name: Test package build
+        run: uv build

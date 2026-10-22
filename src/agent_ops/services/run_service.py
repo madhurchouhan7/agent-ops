@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import UTC, datetime
 import logging
+from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
 from sqlalchemy.orm import Session
 
-from agent_ops.domain.errors import AgentOpsError, InvalidTransitionError
+from agent_ops.domain.errors import AgentOpsError
 from agent_ops.domain.models import Run, RunStatus
 from agent_ops.runtime.engine import WorkflowRuntime
 from agent_ops.services.event_bus import global_event_bus
@@ -61,7 +61,11 @@ class RunService:
         session.commit()
 
         # Emit to event bus non-blockingly
-        RunService._dispatch_event(run_id, "run.created", {"input": input_data, "sequence_no": event.sequence_no})
+        RunService._dispatch_event(
+            run_id,
+            "run.created",
+            {"input": input_data, "sequence_no": event.sequence_no},
+        )
 
         return run_model
 
@@ -90,7 +94,9 @@ class RunService:
         )
         session.commit()
 
-        RunService._dispatch_event(run_id, "run.paused", {"sequence_no": event.sequence_no})
+        RunService._dispatch_event(
+            run_id, "run.paused", {"sequence_no": event.sequence_no}
+        )
         return run_model
 
     @staticmethod
@@ -118,7 +124,9 @@ class RunService:
         )
         session.commit()
 
-        RunService._dispatch_event(run_id, "run.resumed", {"sequence_no": event.sequence_no})
+        RunService._dispatch_event(
+            run_id, "run.resumed", {"sequence_no": event.sequence_no}
+        )
         return run_model
 
     @staticmethod
@@ -146,7 +154,9 @@ class RunService:
         )
         session.commit()
 
-        RunService._dispatch_event(run_id, "run.cancelled", {"sequence_no": event.sequence_no})
+        RunService._dispatch_event(
+            run_id, "run.cancelled", {"sequence_no": event.sequence_no}
+        )
         return run_model
 
     @staticmethod
@@ -180,11 +190,15 @@ class RunService:
         run_model = session.get(RunModel, run.id)
         assert run_model is not None
 
-        RunService._dispatch_event(run.id, "demo.approval_required", {
-            "approval_id": approval.id,
-            "tool_name": approval.tool_name,
-            "status": run_model.status,
-        })
+        RunService._dispatch_event(
+            run.id,
+            "demo.approval_required",
+            {
+                "approval_id": approval.id,
+                "tool_name": approval.tool_name,
+                "status": run_model.status,
+            },
+        )
 
         return run_model, approval
 
@@ -219,19 +233,27 @@ class RunService:
         refreshed_model = session.get(RunModel, run_id)
         assert refreshed_model is not None
 
-        RunService._dispatch_event(run_id, "demo.resumed", {
-            "status": refreshed_model.status,
-            "executed": result is not None,
-        })
+        RunService._dispatch_event(
+            run_id,
+            "demo.resumed",
+            {
+                "status": refreshed_model.status,
+                "executed": result is not None,
+            },
+        )
 
         return refreshed_model, (result.data if result else None)
 
     @staticmethod
     def _dispatch_event(run_id: str, event_type: str, payload: dict[str, Any]) -> None:
-        """Safely schedule event publication on the running asyncio loop if one exists."""
+        """Safely schedule event publication on the running asyncio loop"""
         try:
             loop = asyncio.get_running_loop()
-            loop.create_task(global_event_bus.publish(run_id, {"event_type": event_type, "payload": payload}))
+            loop.create_task(
+                global_event_bus.publish(
+                    run_id, {"event_type": event_type, "payload": payload}
+                )
+            )
         except RuntimeError:
             # No running event loop in thread; skip async dispatch safely
             pass

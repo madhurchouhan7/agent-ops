@@ -1,7 +1,7 @@
 """Unit tests for system design improvements: IdempotencyManager and EventBus."""
 
 import asyncio
-from datetime import timedelta
+
 import pytest
 
 from agent_ops.services.event_bus import EventBus
@@ -9,9 +9,9 @@ from agent_ops.services.idempotency import IdempotencyManager
 
 
 def test_idempotency_manager_lifecycle() -> None:
-    """Verify registration, retrieval, completion, and expiration in IdempotencyManager."""
+    """Verify registration, retrieval, and completion in IdempotencyManager."""
     mgr = IdempotencyManager(ttl_seconds=2)
-    mgr.clear()
+    mgr._store.clear()
 
     # Register new key
     rec = mgr.register("key_123", run_id="run_abc", status="IN_PROGRESS")
@@ -25,7 +25,9 @@ def test_idempotency_manager_lifecycle() -> None:
     assert found.run_id == "run_abc"
 
     # Mark completed with payload
-    mgr.complete("key_123", response_payload={"run_id": "run_abc", "status": "SUCCEEDED"})
+    mgr.complete(
+        "key_123", response_payload={"run_id": "run_abc", "status": "SUCCEEDED"}
+    )
     completed = mgr.get("key_123")
     assert completed is not None
     assert completed.status == "COMPLETED"
@@ -38,7 +40,7 @@ async def test_event_bus_pub_sub() -> None:
     bus = EventBus()
     received_events = []
 
-    async def subscriber():
+    async def subscriber() -> None:
         async for evt in bus.subscribe("run_1"):
             received_events.append(evt)
             if len(received_events) >= 2:

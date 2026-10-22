@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import time
 from pathlib import Path
+from typing import Any
 from uuid import uuid4
 
 from fastapi import FastAPI, Request, Response
@@ -100,6 +101,16 @@ def create_app(
         assets_dir = static_dir / "assets"
         if assets_dir.exists():
             app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
+
+    @app.get("/health", include_in_schema=False)
+    async def root_health_check() -> JSONResponse:
+        return JSONResponse(
+            {
+                "status": "healthy",
+                "service": "agent-ops-control-plane",
+                "version": "0.1.0",
+            }
+        )
 
     @app.get("/", include_in_schema=False, response_model=None)
     @app.get("/console", include_in_schema=False, response_model=None)
