@@ -22,7 +22,10 @@ AgentOps is built across four focused phases to deliver a reliable, observable d
   1. A workflow run can be initialized in `CREATED` state and advance through legal transitions to `RUNNING`, `PAUSED`, `SUCCEEDED`, `FAILED`, and `CANCELLED`.
   2. Illegal state transitions and transitions from terminal states immediately fail with explicit domain errors.
   3. Execution step limits and timeouts cleanly halt execution and transition the run to `FAILED` with a `BUDGET_EXCEEDED` error code.
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 01-01: Domain models, state machine, and bounded execution runtime
 
 ### Phase 2: Persisted Timeline, Checkpoints & Recovery
 **Goal**: Persist execution events and checkpoints to PostgreSQL so that runs survive process restarts and restore cleanly.
