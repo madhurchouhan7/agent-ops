@@ -1,5 +1,6 @@
-"""Storage layer providing persistence models, events, and sessions."""
+"""Storage layer providing persistence models, events, and recovery services."""
 
+from agent_ops.storage.checkpoint_service import CheckpointService
 from agent_ops.storage.database import (
     create_db_engine,
     get_session,
@@ -13,11 +14,14 @@ from agent_ops.storage.models import (
     RunEventModel,
     RunModel,
 )
+from agent_ops.storage.recovery import RecoveryService
 
 __all__ = [
     "Base",
     "CheckpointModel",
+    "CheckpointService",
     "EventRepository",
+    "RecoveryService",
     "RunEventModel",
     "RunModel",
     "create_db_engine",

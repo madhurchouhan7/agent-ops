@@ -34,7 +34,10 @@ class WorkflowRuntime:
     ) -> Step:
         """Execute a single bounded node action within budget limits."""
         # Check wall-clock timeout
-        elapsed_seconds = (datetime.now(UTC) - run.created_at).total_seconds()
+        created_at = run.created_at
+        if created_at.tzinfo is None:
+            created_at = created_at.replace(tzinfo=UTC)
+        elapsed_seconds = (datetime.now(UTC) - created_at).total_seconds()
         if elapsed_seconds > run.budget.timeout_seconds:
             self.state_machine.transition(
                 run, RunStatus.FAILED, error_code="BUDGET_EXCEEDED"
