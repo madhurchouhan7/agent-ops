@@ -62,7 +62,10 @@ Plans:
   2. Offline mock replay reproduces the execution trajectory with zero external network requests.
   3. Golden trajectory evaluations run in CI and catch skipped safety or approval steps.
   4. The synthetic support triage demo executes end-to-end via FastAPI endpoints with idempotent create operations.
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 04-01: Diagnostics, offline mock replay, trajectory CI evaluation, support triage demo, and FastAPI control API
 
 ## Progress
 
