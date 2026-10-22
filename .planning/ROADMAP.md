@@ -6,7 +6,7 @@ AgentOps is built across four focused phases to deliver a reliable, observable d
 
 ## Phases
 
-- [ ] **Phase 1: Domain Models & State Machine Runtime** - In-memory workflow execution with strict state transitions and step budgets.
+- [x] **Phase 1: Domain Models & State Machine Runtime** - In-memory workflow execution with strict state transitions and step budgets.
 - [ ] **Phase 2: Persisted Timeline, Checkpoints & Recovery** - Durable PostgreSQL storage, monotonic event sequence, and restart recovery.
 - [ ] **Phase 3: Tool Registry, Policy Gate & Approvals** - Allow-listed tools, code-level policy enforcement, and human approval pause/resume.
 - [ ] **Phase 4: Diagnostics, Evaluation & Support Demo** - Failure capsule export, offline mock replay, golden trajectory suite, and end-to-end support demo.
@@ -25,7 +25,7 @@ AgentOps is built across four focused phases to deliver a reliable, observable d
 **Plans**: 1 plan
 
 Plans:
-- [ ] 01-01: Domain models, state machine, and bounded execution runtime
+- [x] 01-01: Domain models, state machine, and bounded execution runtime
 
 ### Phase 2: Persisted Timeline, Checkpoints & Recovery
 **Goal**: Persist execution events and checkpoints to PostgreSQL so that runs survive process restarts and restore cleanly.
@@ -65,7 +65,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Domain Models & State Machine Runtime | 0/1 | Not started | - |
+| 1. Domain Models & State Machine Runtime | 1/1 | Complete | 2026-10-22 |
 | 2. Persisted Timeline, Checkpoints & Recovery | 0/1 | Not started | - |
 | 3. Tool Registry, Policy Gate & Approvals | 0/1 | Not started | - |
 | 4. Diagnostics, Evaluation & Support Demo | 0/1 | Not started | - |
