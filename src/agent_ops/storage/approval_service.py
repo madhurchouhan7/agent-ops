@@ -120,6 +120,7 @@ class ApprovalService:
             event_type=event_type,
             payload={
                 "approval_id": approval_id,
+                "tool_name": approval.tool_name,
                 "actor": actor,
                 "approved": approved,
                 "reason": reason,
