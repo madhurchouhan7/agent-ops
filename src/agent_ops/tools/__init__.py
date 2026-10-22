@@ -1,5 +1,6 @@
 """Tool registration, validation, and policy gating."""
 
+from agent_ops.tools.policy import PolicyDecision, PolicyGate
 from agent_ops.tools.registry import (
     RiskTier,
     ToolDefinition,
@@ -8,6 +9,8 @@ from agent_ops.tools.registry import (
 )
 
 __all__ = [
+    "PolicyDecision",
+    "PolicyGate",
     "RiskTier",
     "ToolDefinition",
     "ToolRegistry",
