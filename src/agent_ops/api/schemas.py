@@ -69,3 +69,11 @@ class EvaluateRunRequest(BaseModel):
     expected_node_order: list[str] | None = None
     require_hitl_approval_for: list[str] | None = None
     forbidden_nodes: list[str] | None = None
+
+
+class StartDemoRequest(BaseModel):
+    """Payload to trigger the interactive customer support triage demo."""
+
+    ticket_id: str = "TICKET-DEMO-01"
+    message: str = "Billing question: I noticed an unexpected charge on my invoice."
+    customer_id: str = "ENT-1001"

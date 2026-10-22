@@ -17,6 +17,7 @@ from agent_ops.api.schemas import (
     EvaluateRunRequest,
     EventResponse,
     RunResponse,
+    StartDemoRequest,
 )
 from agent_ops.diagnostics import CapsuleService, FailureCapsule, RedactionEngine
 from agent_ops.domain.errors import AgentOpsError
@@ -28,6 +29,8 @@ from agent_ops.storage import (
     EventRepository,
 )
 from agent_ops.storage.models import ApprovalModel, RunModel
+from agent_ops.tools import PolicyGate, ToolRegistry
+from agent_ops.workflows import SupportTriageWorkflow
 
 router = APIRouter(prefix="/v1")
 
@@ -420,3 +423,82 @@ def evaluate_run(
         require_hitl_approval_for=require_set,
         forbidden_nodes=forbidden_set,
     )
+
+
+# ---------------------------------------------------------------------------
+# Interactive Demo Endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.post("/demo/triage/start")
+def start_triage_demo(
+    req: StartDemoRequest,
+    session: DbSession,
+) -> dict[str, Any]:
+    """Initialize and advance the synthetic support triage demo to approval gate."""
+    registry = ToolRegistry()
+    SupportTriageWorkflow.register_tools(registry)
+    policy_gate = PolicyGate()
+    runtime = WorkflowRuntime()
+
+    run = SupportTriageWorkflow.create_run(
+        session=session,
+        ticket_id=req.ticket_id,
+        message=req.message,
+        customer_id=req.customer_id,
+    )
+
+    approval = SupportTriageWorkflow.execute_until_approval(
+        session=session,
+        run=run,
+        runtime=runtime,
+        registry=registry,
+        policy_gate=policy_gate,
+    )
+
+    run_model = session.get(RunModel, run.id)
+    assert run_model is not None
+
+    return {
+        "run": serialize_run(run_model),
+        "approval": serialize_approval(approval),
+        "status": "PAUSED_WAITING_FOR_APPROVAL",
+    }
+
+
+@router.post("/demo/triage/{run_id}/resume")
+def resume_triage_demo(
+    run_id: str,
+    session: DbSession,
+) -> dict[str, Any]:
+    """Resume execution of a paused triage demo run following approval or rejection."""
+    run_model = session.get(RunModel, run_id)
+    if not run_model:
+        raise HTTPException(status_code=404, detail="RUN_NOT_FOUND")
+
+    domain_run = Run(
+        id=run_model.id,
+        workflow_id=run_model.workflow_id,
+        status=RunStatus(run_model.status),
+        state=run_model.state_json,
+    )
+
+    registry = ToolRegistry()
+    SupportTriageWorkflow.register_tools(registry)
+    runtime = WorkflowRuntime()
+
+    result = SupportTriageWorkflow.resume_after_approval(
+        session=session,
+        run=domain_run,
+        runtime=runtime,
+        registry=registry,
+    )
+
+    refreshed_model = session.get(RunModel, run_id)
+    assert refreshed_model is not None
+
+    return {
+        "run": serialize_run(refreshed_model),
+        "result": result.data if result else None,
+        "executed": result is not None,
+    }

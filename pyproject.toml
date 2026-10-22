@@ -14,7 +14,11 @@ dependencies = [
     "httpx>=0.27",
     "pydantic>=2.7",
     "sqlalchemy>=2.0",
+    "uvicorn[standard]>=0.30",
 ]
+
+[project.scripts]
+agentops = "agent_ops.main:main"
 
 [dependency-groups]
 dev = [
