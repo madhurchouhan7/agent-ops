@@ -48,7 +48,10 @@ Plans:
   1. Only registered tools with schema validation can execute; unknown or unauthorized tools fail closed.
   2. Workflows automatically transition to `PAUSED` when a protected action requires human approval.
   3. Approvals are checked server-side for authorization, and rejected actions guarantee the protected tool never executes.
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 03-01: Tool registry, policy gate, and human-in-the-loop approvals
 
 ### Phase 4: Diagnostics, Evaluation & Support Demo
 **Goal**: Deliver failure capsule export, offline mock replay, trajectory CI evaluation, and the complete support triage demo.
