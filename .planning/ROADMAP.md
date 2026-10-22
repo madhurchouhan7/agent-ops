@@ -2,7 +2,7 @@
 
 ## Overview
 
-AgentOps is built across four focused phases to deliver a reliable, observable developer control plane for stateful AI agent workflows. We start with the core domain state machine and bounded execution runtime (the walking skeleton), layer on durable PostgreSQL persistence and restart recovery from versioned checkpoints, build the allow-listed tool registry and policy-enforced human-in-the-loop approval gates, and culminate with redacted failure capsules, offline mock replay, and the full synthetic support triage demo.
+AgentOps is built across focused phases to deliver a reliable, observable developer control plane for stateful AI agent workflows. We start with the core domain state machine and bounded execution runtime, layer on durable PostgreSQL persistence and restart recovery from versioned checkpoints, build the allow-listed tool registry and policy-enforced human-in-the-loop approval gates, deliver failure capsules and evaluations, and culminate in a production-ready server and interactive web console for local testing.
 
 ## Phases
 
@@ -10,6 +10,7 @@ AgentOps is built across four focused phases to deliver a reliable, observable d
 - [x] **Phase 2: Persisted Timeline, Checkpoints & Recovery** - Durable PostgreSQL storage, monotonic event sequence, and restart recovery.
 - [x] **Phase 3: Tool Registry, Policy Gate & Approvals** - Allow-listed tools, code-level policy enforcement, and human approval pause/resume.
 - [x] **Phase 4: Diagnostics, Evaluation & Support Demo** - Failure capsule export, offline mock replay, golden trajectory suite, and end-to-end support demo.
+- [x] **Phase 5: Production Local Server & Web Console** - Production-ready FastAPI local server with disk persistence, demo runner routes, and an interactive frontend dashboard for browser testing.
 
 ## Phase Details
 
@@ -18,10 +19,6 @@ AgentOps is built across four focused phases to deliver a reliable, observable d
 **Mode:** mvp
 **Depends on**: Nothing (first phase)
 **Requirements**: STATE-01, STATE-02, STATE-03
-**Success Criteria** (what must be TRUE):
-  1. A workflow run can be initialized in `CREATED` state and advance through legal transitions to `RUNNING`, `PAUSED`, `SUCCEEDED`, `FAILED`, and `CANCELLED`.
-  2. Illegal state transitions and transitions from terminal states immediately fail with explicit domain errors.
-  3. Execution step limits and timeouts cleanly halt execution and transition the run to `FAILED` with a `BUDGET_EXCEEDED` error code.
 **Plans**: 1 plan
 
 Plans:
@@ -31,10 +28,6 @@ Plans:
 **Goal**: Persist execution events and checkpoints to PostgreSQL so that runs survive process restarts and restore cleanly.
 **Depends on**: Phase 1
 **Requirements**: PERSIST-01, PERSIST-02, PERSIST-03, PERSIST-04
-**Success Criteria** (what must be TRUE):
-  1. Every execution fact is recorded as an immutable event with a monotonic sequence number `(run_id, sequence_no)`.
-  2. Versioned checkpoints save serializable state at safe node boundaries.
-  3. A fresh process can restore an in-flight run from a checkpoint and resume execution without data loss.
 **Plans**: 1 plan
 
 Plans:
@@ -44,10 +37,6 @@ Plans:
 **Goal**: Restrict tool execution to allow-listed schemas with code-enforced policies, pausing before protected actions for human approval.
 **Depends on**: Phase 2
 **Requirements**: TOOL-01, TOOL-02, TOOL-03, HITL-01, HITL-02, HITL-03
-**Success Criteria** (what must be TRUE):
-  1. Only registered tools with schema validation can execute; unknown or unauthorized tools fail closed.
-  2. Workflows automatically transition to `PAUSED` when a protected action requires human approval.
-  3. Approvals are checked server-side for authorization, and rejected actions guarantee the protected tool never executes.
 **Plans**: 1 plan
 
 Plans:
@@ -57,20 +46,31 @@ Plans:
 **Goal**: Deliver failure capsule export, offline mock replay, trajectory CI evaluation, and the complete support triage demo.
 **Depends on**: Phase 3
 **Requirements**: DIAG-01, DIAG-02, DIAG-03, DEMO-01, API-01
-**Success Criteria** (what must be TRUE):
-  1. Failed runs export redacted Failure Capsules with credentials and secrets stripped.
-  2. Offline mock replay reproduces the execution trajectory with zero external network requests.
-  3. Golden trajectory evaluations run in CI and catch skipped safety or approval steps.
-  4. The synthetic support triage demo executes end-to-end via FastAPI endpoints with idempotent create operations.
 **Plans**: 1 plan
 
 Plans:
 - [x] 04-01: Diagnostics, offline mock replay, trajectory CI evaluation, support triage demo, and FastAPI control API
 
+### Phase 5: Production Local Server & Web Console
+**Goal**: As a developer testing and demonstrating AgentOps locally, I want to run a production-ready server and open an interactive frontend console in my browser, so that I can submit support tickets, view live timelines, review and approve/reject protected actions, inspect redacted failure capsules, and evaluate trajectories.
+**Mode**: mvp
+**Depends on**: Phase 4
+**Requirements**: LOCAL-01, LOCAL-02, UI-01, UI-02
+**Success Criteria** (what must be TRUE):
+  1. A single command starts the production-ready FastAPI server with disk SQLite database persistence and CORS enabled.
+  2. The server provides dedicated demo orchestration endpoints (`/v1/demo/triage/start`, `/v1/demo/triage/{run_id}/resume`) that advance the synthetic workflow.
+  3. An interactive frontend console opens in the browser, showing live run cards, status badges, monotonic event timelines, and safe projected state.
+  4. The frontend UI provides an interactive review modal for pending approvals, allowing reviewers to approve or reject protected actions with server-side authorization.
+  5. The frontend displays redacted Failure Capsules and one-click trajectory evaluation results.
+**Plans**: 1 plan
+
+Plans:
+- [x] 05-01: Production local server, demo orchestration routes, and interactive frontend console
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -78,3 +78,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 2. Persisted Timeline, Checkpoints & Recovery | 1/1 | Complete | 2026-10-22 |
 | 3. Tool Registry, Policy Gate & Approvals | 1/1 | Complete | 2026-10-22 |
 | 4. Diagnostics, Evaluation & Support Demo | 1/1 | Complete | 2026-10-22 |
+| 5. Production Local Server & Web Console | 1/1 | Complete | 2026-10-22 |
