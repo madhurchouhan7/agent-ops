@@ -2,19 +2,26 @@
 
 from collections.abc import Generator
 from contextlib import contextmanager
+from typing import Any
 
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 from agent_ops.storage.models import Base
 
 
 def create_db_engine(database_url: str = "sqlite:///:memory:") -> Engine:
     """Create a SQLAlchemy database engine."""
-    connect_args = {}
+    connect_args: dict[str, Any] = {}
+    kwargs: dict[str, Any] = {}
+
     if database_url.startswith("sqlite"):
         connect_args["check_same_thread"] = False
-    return create_engine(database_url, connect_args=connect_args)
+        if ":memory:" in database_url:
+            kwargs["poolclass"] = StaticPool
+
+    return create_engine(database_url, connect_args=connect_args, **kwargs)
 
 
 def init_db(engine: Engine) -> None:
