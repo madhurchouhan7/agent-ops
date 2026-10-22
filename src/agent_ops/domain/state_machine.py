@@ -6,7 +6,9 @@ from agent_ops.domain.errors import InvalidTransitionError, TerminalStateError
 from agent_ops.domain.models import TERMINAL_STATUSES, Run, RunStatus
 
 ALLOWED_TRANSITIONS: dict[RunStatus, frozenset[RunStatus]] = {
-    RunStatus.CREATED: frozenset({RunStatus.RUNNING, RunStatus.CANCELLED}),
+    RunStatus.CREATED: frozenset(
+        {RunStatus.RUNNING, RunStatus.FAILED, RunStatus.CANCELLED}
+    ),
     RunStatus.RUNNING: frozenset(
         {
             RunStatus.PAUSED,
@@ -15,7 +17,9 @@ ALLOWED_TRANSITIONS: dict[RunStatus, frozenset[RunStatus]] = {
             RunStatus.CANCELLED,
         }
     ),
-    RunStatus.PAUSED: frozenset({RunStatus.RUNNING, RunStatus.CANCELLED}),
+    RunStatus.PAUSED: frozenset(
+        {RunStatus.RUNNING, RunStatus.FAILED, RunStatus.CANCELLED}
+    ),
     RunStatus.SUCCEEDED: frozenset(),
     RunStatus.FAILED: frozenset(),
     RunStatus.CANCELLED: frozenset(),
