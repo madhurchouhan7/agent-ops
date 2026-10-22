@@ -35,7 +35,10 @@ Plans:
   1. Every execution fact is recorded as an immutable event with a monotonic sequence number `(run_id, sequence_no)`.
   2. Versioned checkpoints save serializable state at safe node boundaries.
   3. A fresh process can restore an in-flight run from a checkpoint and resume execution without data loss.
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 02-01: Persistent timeline, checkpoints, and restart recovery
 
 ### Phase 3: Tool Registry, Policy Gate & Approvals
 **Goal**: Restrict tool execution to allow-listed schemas with code-enforced policies, pausing before protected actions for human approval.
