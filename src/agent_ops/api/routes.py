@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Generator
 from datetime import UTC, datetime
 from typing import Annotated, Any
 from uuid import uuid4
@@ -38,11 +39,14 @@ router = APIRouter(prefix="/v1")
 IDEMPOTENCY_STORE: dict[str, str] = {}
 
 
-def get_db_session(request: Request) -> Session:
-    """Dependency to retrieve database session from request app state."""
+def get_db_session(request: Request) -> Generator[Session, None, None]:
+    """Dependency to retrieve database session with guaranteed teardown."""
     session_factory = request.app.state.session_factory
     session: Session = session_factory()
-    return session
+    try:
+        yield session
+    finally:
+        session.close()
 
 
 DbSession = Annotated[Session, Depends(get_db_session)]

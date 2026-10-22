@@ -6,7 +6,7 @@ from typing import Any
 
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy.pool import NullPool, StaticPool
 
 from agent_ops.storage.models import Base
 
@@ -20,6 +20,8 @@ def create_db_engine(database_url: str = "sqlite:///:memory:") -> Engine:
         connect_args["check_same_thread"] = False
         if ":memory:" in database_url:
             kwargs["poolclass"] = StaticPool
+        else:
+            kwargs["poolclass"] = NullPool
 
     return create_engine(database_url, connect_args=connect_args, **kwargs)
 

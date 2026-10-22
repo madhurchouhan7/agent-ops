@@ -219,3 +219,40 @@ def test_evaluation_run_via_api(api_client: TestClient) -> None:
     assert eval_data["run_id"] == run_id
     assert "passed" in eval_data
     assert "score" in eval_data
+
+
+def test_connection_pool_not_exhausted_by_many_requests(
+    api_client: TestClient,
+) -> None:
+    """Verify successive API calls close DB sessions without pool exhaustion."""
+    create_resp = api_client.post("/v1/runs", json={"workflow_id": "support_triage_v1"})
+    assert create_resp.status_code == 201
+    run_id = create_resp.json()["run_id"]
+
+    # Issue 30 requests (previously failed after 15 due to QueuePool checkout leak)
+    for _ in range(30):
+        state_resp = api_client.get(f"/v1/runs/{run_id}/state")
+        assert state_resp.status_code == 200
+
+        appr_resp = api_client.get(f"/v1/approvals?run_id={run_id}")
+        assert appr_resp.status_code == 200
+
+
+def test_disk_sqlite_connection_teardown(tmp_path: pytest.TempPathFactory) -> None:
+    """Verify that file-based SQLite engines with NullPool teardown properly."""
+    db_file = tmp_path / "test_agent_ops.db"  # type: ignore[operator]
+    engine = create_db_engine(f"sqlite:///{db_file}")
+    init_db(engine)
+    session_factory = get_session_factory(engine)
+    app = create_app(session_factory=session_factory)
+
+    with TestClient(app) as client:
+        create_resp = client.post("/v1/runs", json={"workflow_id": "support_triage_v1"})
+        assert create_resp.status_code == 201
+        run_id = create_resp.json()["run_id"]
+
+        for _ in range(25):
+            r1 = client.get(f"/v1/runs/{run_id}/state")
+            assert r1.status_code == 200
+            r2 = client.get(f"/v1/approvals?run_id={run_id}")
+            assert r2.status_code == 200
