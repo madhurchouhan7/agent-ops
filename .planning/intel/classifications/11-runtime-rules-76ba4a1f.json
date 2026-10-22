@@ -1,0 +1,18 @@
+{
+  "source_path": "docs/11-runtime-rules.md",
+  "type": "SPEC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Runtime Rules and Invariants",
+  "summary": "Normative rules for state transitions, tool execution, persistence, approval, and replay.",
+  "scope": [
+    "State Invariants",
+    "Tool Rules",
+    "Persistence Rules",
+    "HITL Approval Rules",
+    "Error Categories"
+  ],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null
+}

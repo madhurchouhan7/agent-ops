@@ -1,0 +1,20 @@
+{
+  "source_path": "docs/08-data-model.md",
+  "type": "SPEC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Data Model",
+  "summary": "Defines conceptual relational schema for runs, run_events, checkpoints, tool_calls, approvals, evaluations.",
+  "scope": [
+    "runs",
+    "run_events",
+    "checkpoints",
+    "tool_calls",
+    "approvals",
+    "evaluations",
+    "Integrity Rules"
+  ],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null
+}

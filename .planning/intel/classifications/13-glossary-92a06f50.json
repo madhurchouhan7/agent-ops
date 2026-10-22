@@ -1,0 +1,20 @@
+{
+  "source_path": "docs/13-glossary.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Glossary",
+  "summary": "Standard terminology definitions for AgentOps concepts.",
+  "scope": [
+    "Glossary",
+    "Agent",
+    "Workflow",
+    "Run",
+    "Checkpoint",
+    "Event",
+    "Failure Capsule"
+  ],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null
+}

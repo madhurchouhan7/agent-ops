@@ -1,0 +1,20 @@
+{
+  "source_path": "docs/01-mvp-contract.md",
+  "type": "PRD",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "AOPS-001 \u2014 AgentOps MVP Contract",
+  "summary": "Defines the MVP user story, demo workflow, lifecycle states, must-have scope, and success criteria.",
+  "scope": [
+    "MVP Contract",
+    "User Story",
+    "Demo Workflow",
+    "Lifecycle States",
+    "Success Criteria"
+  ],
+  "cross_refs": [
+    "docs/02-problem-and-solution.md"
+  ],
+  "locked": false,
+  "precedence": null
+}

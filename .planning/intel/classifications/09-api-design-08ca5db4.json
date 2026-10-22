@@ -1,0 +1,18 @@
+{
+  "source_path": "docs/09-api-design.md",
+  "type": "SPEC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "API Design",
+  "summary": "Specifies REST control endpoints, request/response contracts, status codes, and error formats.",
+  "scope": [
+    "REST API",
+    "Runs API",
+    "Approvals API",
+    "Failure Capsule API",
+    "Evaluations API"
+  ],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null
+}

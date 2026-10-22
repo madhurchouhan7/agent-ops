@@ -1,0 +1,18 @@
+{
+  "source_path": "docs/10-security-and-threat-model.md",
+  "type": "SPEC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Security and Threat Model",
+  "summary": "Defines assets, threat vectors, mandatory security controls, tool risk tiers (T0-T3), and security tests.",
+  "scope": [
+    "Threat Model",
+    "Security Controls",
+    "Risk Tiers",
+    "Least Privilege",
+    "Redaction"
+  ],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null
+}

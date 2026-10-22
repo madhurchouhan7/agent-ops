@@ -1,0 +1,17 @@
+{
+  "source_path": "docs/04-user-flows.md",
+  "type": "SPEC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "User Flows",
+  "summary": "Defines user flows for run inspection, human approval sequence, failure diagnosis, and UX rules.",
+  "scope": [
+    "Run Inspection Flow",
+    "Human Approval Sequence",
+    "Failure Diagnosis Flow",
+    "UX Rules"
+  ],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null
+}

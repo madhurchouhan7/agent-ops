@@ -1,0 +1,18 @@
+{
+  "source_path": "docs/02-problem-and-solution.md",
+  "type": "PRD",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Problem and Solution",
+  "summary": "Describes the core problem of opaque agent workflows, target users, solution pillars, and boundaries.",
+  "scope": [
+    "Problem Statement",
+    "Target Users",
+    "Solution Pillars",
+    "Value",
+    "Limitations"
+  ],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null
+}

@@ -1,0 +1,17 @@
+{
+  "source_path": "docs/03-product-scope-v1.md",
+  "type": "PRD",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Product Scope \u2014 V1 Features",
+  "summary": "V1 feature matrix with behaviors, acceptance evidence, candidates, and strict prioritization rule.",
+  "scope": [
+    "V1 Features",
+    "Feature Matrix",
+    "Acceptance Evidence",
+    "Prioritization Rule"
+  ],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null
+}

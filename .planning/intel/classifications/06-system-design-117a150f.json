@@ -1,0 +1,18 @@
+{
+  "source_path": "docs/06-system-design.md",
+  "type": "SPEC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "System Design",
+  "summary": "Details run model, persistence consistency, event ordering, concurrency, scaling path, and error categories.",
+  "scope": [
+    "Run Model",
+    "Persistence Consistency",
+    "Event Ordering",
+    "Concurrency",
+    "Scaling Path"
+  ],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null
+}

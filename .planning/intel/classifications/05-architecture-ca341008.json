@@ -1,0 +1,19 @@
+{
+  "source_path": "docs/05-architecture.md",
+  "type": "SPEC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Architecture",
+  "summary": "Defines the system architecture, component responsibilities, runtime sequence, and trust boundaries.",
+  "scope": [
+    "Architecture",
+    "Web Console",
+    "FastAPI Control API",
+    "Workflow Runtime",
+    "Tool Registry",
+    "Policy Gate"
+  ],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null
+}
